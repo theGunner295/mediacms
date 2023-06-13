@@ -4,9 +4,11 @@ trigger:
     include:
     - main
   paths:
-    include:
-      - ./*
-      - azure-pipelines-cms.yml
+    exclude:
+      - README.md
+      - LICENSE.txt
+      - .gitignore
+      - .dockerignore
 
 resources:
 - repo: self
