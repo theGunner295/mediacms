@@ -1,15 +1,15 @@
 FRONTEND_HOST = 'http://localhost'
 PORTAL_NAME = 'MediaCMS'
 SECRET_KEY = 'ma!s3^b-cw!f#7s6s0m3*jx77a@riw(7701**(r=ww%w!2+yk2'
-POSTGRES_HOST = 'db'
-REDIS_LOCATION = "redis://redis:6379/1"
+POSTGRES_HOST = 'postgres-rs-cms.postgres.svc.cluster.local'
+REDIS_LOCATION = "redis://redis.redis.svc.cluster.local:6379/1"
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "mediacms",
         "HOST": POSTGRES_HOST,
-        "PORT": "5432",
+        "PORT": "5438",
         "USER": "mediacms",
         "PASSWORD": "mediacms",
     }
