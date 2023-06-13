@@ -13,8 +13,8 @@ RUN mkdir -p /home/mediacms.io/mediacms/{logs} && cd /home/mediacms.io && python
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY . /home/mediacms.io/mediacms
 WORKDIR /home/mediacms.io/mediacms
+COPY . .
 
 RUN wget -q http://zebulon.bok.net/Bento4/binaries/Bento4-SDK-1-6-0-637.x86_64-unknown-linux.zip && \
     unzip Bento4-SDK-1-6-0-637.x86_64-unknown-linux.zip -d ../bento4 && \
