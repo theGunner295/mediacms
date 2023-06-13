@@ -6,7 +6,7 @@ DEBUG = False
 
 # PORTAL NAME, this is the portal title and
 # is also shown on several places as emails
-PORTAL_NAME = "MediaCMS"
+PORTAL_NAME = "Redshift CMS"
 PORTAL_DESCRIPTION = ""
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Europe/London"
@@ -19,7 +19,7 @@ CAN_ADD_MEDIA = "all"
 PORTAL_WORKFLOW = "public"
 
 # valid values: 'light', 'dark'.
-DEFAULT_THEME = "light"
+DEFAULT_THEME = "dark"
 
 
 # These are passed on every request
@@ -61,14 +61,14 @@ VIDEO_PLAYER_FEATURED_VIDEO_ON_INDEX_PAGE = False
 PRE_UPLOAD_MEDIA_MESSAGE = ""
 
 # email settings
-DEFAULT_FROM_EMAIL = "info@mediacms.io"
+DEFAULT_FROM_EMAIL = "info@redshiftent.com"
 EMAIL_HOST_PASSWORD = "xyz"
-EMAIL_HOST_USER = "info@mediacms.io"
+EMAIL_HOST_USER = "info@redshiftent.com"
 EMAIL_USE_TLS = True
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-EMAIL_HOST = "mediacms.io"
+EMAIL_HOST = "redshiftent.com"
 EMAIL_PORT = 587
-ADMIN_EMAIL_LIST = ["info@mediacms.io"]
+ADMIN_EMAIL_LIST = ["info@redshiftent.com"]
 
 
 MEDIA_IS_REVIEWED = True  # whether an admin needs to review a media file.
@@ -388,15 +388,15 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "mediacms",
-        "HOST": "127.0.0.1",
-        "PORT": "5432",
+        "HOST": "postgres-rs-cms.postgres.svc.cluster.local",
+        "PORT": "5438",
         "USER": "mediacms",
         "PASSWORD": "mediacms",
     }
 }
 
 
-REDIS_LOCATION = "redis://127.0.0.1:6379/1"
+REDIS_LOCATION = "redis://redis.redis.svc.cluster.local:6379/1"
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
