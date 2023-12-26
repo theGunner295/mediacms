@@ -214,6 +214,7 @@ def embed_media(request):
 
     context = {}
     context["media"] = friendly_token
+    context["media_object"] = media
     return render(request, "cms/embed.html", context)
 
 

@@ -7,6 +7,8 @@
 
 <link rel="canonical" href="{{FRONTEND_HOST}}{{media_object.get_absolute_url}}">
 
+<html xmlns:og="http://ogp.me/ns#">
+
 <meta name="description" content="{% if media_object.summary %}{{media_object.summary}}{% else %}{{media_object.description}}{% endif %}">
 
 <meta property="og:title" content="{{media_object.title}} - {{PORTAL_NAME}}">
@@ -23,6 +25,12 @@
 {% if media_object.media_type == "video" %}
 
 <meta property="og:image" content="{{FRONTEND_HOST}}{{media_object.poster_url}}">
+
+<meta property="og:video:type" content="text/html">
+<meta property="og:video:url" content="{{FRONTEND_HOST}}/embed?m={{media}}">
+<meta property="og:video:secure_url" content="{{FRONTEND_HOST}}/embed?m={{media}}">
+<meta property="og:video:width" content="1280">
+<meta property="og:video:height" content="720">
 
 <meta name="twitter:card" content="summary_large_image">
 
