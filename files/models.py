@@ -427,12 +427,16 @@ class Media(models.Model):
         Performs all related tasks, as check for media type,
         video duration, encode
         """
-
         self.set_media_type()
         if self.media_type == "video":
             self.set_thumbnail(force=True)
-            self.produce_sprite_from_video()
-            self.encode()
+            if settings.DO_NOT_TRANSCODE_VIDEO:
+                self.encoding_status = "success"
+                self.save()
+                self.produce_sprite_from_video()
+            else:
+                self.produce_sprite_from_video()
+                self.encode()
         elif self.media_type == "image":
             self.set_thumbnail(force=True)
         return True
@@ -477,7 +481,10 @@ class Media(models.Model):
                 self.duration = int(round(float(ret.get("video_duration", 0))))
                 self.video_height = int(ret.get("video_height"))
                 if ret.get("video_info", {}).get("codec_name", {}) in ["mjpeg"]:
-                    audio_file_with_thumb = True
+                    # best guess that this is an audio file with a thumbnail
+                    # in other cases, it is not (eg it can be an AVI file)
+                    if ret.get("video_info", {}).get("avg_frame_rate", "") == '0/0':
+                        audio_file_with_thumb = True
 
             if ret.get("is_audio") or audio_file_with_thumb:
                 self.media_type = "audio"
@@ -665,6 +672,13 @@ class Media(models.Model):
             return ret
         for key in ENCODE_RESOLUTIONS_KEYS:
             ret[key] = {}
+
+        # if this is enabled, return original file on a way
+        # that video.js can consume
+        if settings.DO_NOT_TRANSCODE_VIDEO:
+            ret['0-original'] = {"h264": {"url": helpers.url_from_path(self.media_file.path), "status": "success", "progress": 100}}
+            return ret
+
         for encoding in self.encodings.select_related("profile").filter(chunk=False):
             if encoding.profile.extension == "gif":
                 continue
@@ -816,6 +830,7 @@ class Media(models.Model):
         """
 
         res = {}
+        valid_resolutions = [240, 360, 480, 720, 1080, 1440, 2160]
         if self.hls_file:
             if os.path.exists(self.hls_file):
                 hls_file = self.hls_file
@@ -827,11 +842,20 @@ class Media(models.Model):
                         uri = os.path.join(p, iframe_playlist.uri)
                         if os.path.exists(uri):
                             resolution = iframe_playlist.iframe_stream_info.resolution[1]
+                            # most probably video is vertical, getting the first value to
+                            # be the resolution
+                            if resolution not in valid_resolutions:
+                                resolution = iframe_playlist.iframe_stream_info.resolution[0]
+
                             res["{}_iframe".format(resolution)] = helpers.url_from_path(uri)
                     for playlist in m3u8_obj.playlists:
                         uri = os.path.join(p, playlist.uri)
                         if os.path.exists(uri):
                             resolution = playlist.stream_info.resolution[1]
+                            # same as above
+                            if resolution not in valid_resolutions:
+                                resolution = playlist.stream_info.resolution[0]
+
                             res["{}_playlist".format(resolution)] = helpers.url_from_path(uri)
         return res
 

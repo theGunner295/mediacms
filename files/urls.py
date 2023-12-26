@@ -1,7 +1,7 @@
 from django.conf import settings
-from django.conf.urls import include, re_path
+from django.conf.urls import include
 from django.conf.urls.static import static
-from django.urls import path
+from django.urls import path, re_path
 
 from . import management_views, views
 from .feeds import IndexRSSFeed, SearchRSSFeed
@@ -89,3 +89,6 @@ urlpatterns = [
     re_path(r"^manage/media$", views.manage_media, name="manage_media"),
     re_path(r"^manage/users$", views.manage_users, name="manage_users"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if hasattr(settings, "GENERATE_SITEMAP") and settings.GENERATE_SITEMAP:
+    urlpatterns.append(path("sitemap.xml", views.sitemap, name="sitemap"))

@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-from celery.task.control import revoke
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -291,6 +290,16 @@ def search(request):
     RSS_URL = f"/rss{request.environ['REQUEST_URI']}"
     context["RSS_URL"] = RSS_URL
     return render(request, "cms/search.html", context)
+
+
+def sitemap(request):
+    """Sitemap"""
+
+    context = {}
+    context["media"] = list(Media.objects.filter(Q(listable=True)).order_by("-add_date"))
+    context["playlists"] = list(Playlist.objects.filter().order_by("-add_date"))
+    context["users"] = list(User.objects.filter())
+    return render(request, "sitemap.xml", context, content_type="application/xml")
 
 
 def tags(request):
@@ -1396,5 +1405,6 @@ class TaskDetail(APIView):
     permission_classes = (permissions.IsAdminUser,)
 
     def delete(self, request, uid, format=None):
-        revoke(uid, terminate=True)
+        # This is not imported!
+        # revoke(uid, terminate=True)
         return Response(status=status.HTTP_204_NO_CONTENT)

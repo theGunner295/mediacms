@@ -4,7 +4,7 @@
 - [1. Welcome](#1-welcome)
 - [2. Server Installaton](#2-server-installation)
 - [3. Docker Installation](#3-docker-installation)
-- [4. Docker Deployement options](#4-docker-deployment-options)
+- [4. Docker Deployment options](#4-docker-deployment-options)
 - [5. Configuration](#5-configuration)
 - [6. Manage pages](#6-manage-pages)
 - [7. Django admin dashboard](#7-django-admin-dashboard)
@@ -18,19 +18,19 @@
 - [15. Debugging email issues](#15-debugging-email-issues)
 - [16. Frequently Asked Questions](#16-frequently-asked-questions)
 - [17. Cookie consent code](#17-cookie-consent-code)
-
+- [18. Disable encoding and show only original file](#18-disable-encoding-and-show-only-original-file)
 
 ## 1. Welcome
 This page is created for MediaCMS administrators that are responsible for setting up the software, maintaining it and making modifications.
 
 ## 2. Server Installation
 
-The core dependencies are Python3, Django3, Celery, PostgreSQL, Redis, ffmpeg. Any system that can have these dependencies installed, can run MediaCMS. But we strongly suggest installing on Linux Ubuntu 18 or 20 versions.
+The core dependencies are Python3, Django3, Celery, PostgreSQL, Redis, ffmpeg. Any system that can have these dependencies installed, can run MediaCMS. But we strongly suggest installing on Linux Ubuntu (tested on versions 20, 22).
 
-Installation on a Ubuntu 18 or 20 system with git utility installed should be completed in a few minutes with the following steps.
+Installation on an Ubuntu system with git utility installed should be completed in a few minutes with the following steps.
 Make sure you run it as user root, on a clear system, since the automatic script will install and configure the following services: Celery/PostgreSQL/Redis/Nginx and will override any existing settings.
 
-Automated script - tested on Ubuntu 18, Ubuntu 20, and Debian Buster
+Automated script - tested on Ubuntu 20, Ubuntu 22 and Debian Buster
 
 ```bash
 mkdir /home/mediacms.io && cd /home/mediacms.io/
@@ -49,9 +49,24 @@ If you've used the above way to install MediaCMS, update with the following:
 cd /home/mediacms.io/mediacms # enter mediacms directory
 source  /home/mediacms.io/bin/activate # use virtualenv
 git pull # update code
+pip install -r requirements.txt -U # run pip install to update
 python manage.py migrate # run Django migrations
 sudo systemctl restart mediacms celery_long celery_short # restart services
 ```
+
+### Update from version 2 to version 3
+Version 3 is using Django 4 and Celery 5, and needs a recent Python 3.x version. If you are updating from an older version, make sure Python is updated first. Version 2 could run on Python 3.6, but version 3 needs Python3.8 and higher.
+The syntax for starting Celery has also changed, so you have to copy the celery related systemctl files and restart
+
+```
+# cp deploy/local_install/celery_long.service /etc/systemd/system/celery_long.service
+# cp deploy/local_install/celery_short.service /etc/systemd/system/celery_short.service
+# cp deploy/local_install/celery_beat.service /etc/systemd/system/celery_beat.service
+# systemctl daemon-reload
+# systemctl start celery_long celery_short celery_beat
+```
+
+
 
 ### Configuration
 Checkout the configuration section here.
@@ -66,7 +81,7 @@ Database can be backed up with pg_dump and media_files on /home/mediacms.io/medi
 ## Installation
 Install a recent version of [Docker](https://docs.docker.com/get-docker/), and [Docker Compose](https://docs.docker.com/compose/install/).
 
-For Ubuntu 18/20 systems this is:
+For Ubuntu 20/22 systems this is:
 
 ```bash
 curl -fsSL https://get.docker.com -o get-docker.sh
@@ -111,6 +126,18 @@ docker pull mediacms/mediacms
 docker-compose down
 docker-compose up
 ```
+
+### Update from version 2 to version 3
+Version 3 is using Python 3.11 and PostgreSQL 15. If you are updating from an older version, that was using PostgreSQL 13, the automatic update will not work, as you will receive the following message when the PostgreSQL container starts:
+
+```
+db_1              | 2023-06-27 11:07:42.959 UTC [1] FATAL:  database files are incompatible with server
+db_1              | 2023-06-27 11:07:42.959 UTC [1] DETAIL:  The data directory was initialized by PostgreSQL version 13, which is not compatible with this version 15.2.
+```
+
+At this point there are two options: either edit the Docker Compose file and make use of the existing postgres:13 image, or otherwise you have to perform the migration from postgresql 13 to version 15. More notes on https://github.com/mediacms-io/mediacms/pull/749
+
+
 
 ## Configuration
 Checkout the configuration docs here.
@@ -443,6 +470,14 @@ ADMINS_NOTIFICATIONS = {
 - Make the portal workflow public, but at the same time set `GLOBAL_LOGIN_REQUIRED = True` so that only logged in users can see content.
 - You can either set `REGISTER_ALLOWED = False` if you want to add members yourself or checkout options on "django-allauth settings" that affects registration in `cms/settings.py`. Eg set the portal invite only, or set email confirmation as mandatory, so that you control who registers.
 
+### 5.24 Enable the sitemap
+
+Whether or not to enable generation of a sitemap file at http://your_installation/sitemap.xml (default: False)
+
+```
+GENERATE_SITEMAP = False
+```
+
 ## 6. Manage pages
 to be written
 
@@ -735,3 +770,12 @@ this will re-create the sprites for videos that the task failed.
 On file `templates/components/header.html` you can find a simple cookie consent code. It is commented, so you have to remove the `{% comment %}` and `{% endcomment %}` lines in order to enable it. Or you can replace that part with your own code that handles cookie consent banners.
 
 ![Simple Cookie Consent](images/cookie_consent.png)
+
+## 18. Disable encoding and show only original file
+When videos are uploaded, they are getting encoded to multiple resolutions, a procedure called transcoding. Sometimes this is not needed and you only need to show the original file, eg when MediaCMS is running on a low capabilities server. To achieve this, edit settings.py and set
+
+```
+DO_NOT_TRANSCODE_VIDEO = True
+```
+
+This will disable the transcoding process and only the original file will be shown. Note that this will also disable the sprites file creation, so you will not have the preview thumbnails on the video player.
